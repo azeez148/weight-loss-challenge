@@ -4,6 +4,7 @@ class UserProfile {
   final String displayName;
   final double? targetWeight;
   final double? currentWeight;
+  final double? startWeight;
   final double? height;
   final DateTime? birthDate;
   final String? profileImageUrl;
@@ -14,6 +15,7 @@ class UserProfile {
     required this.displayName,
     this.targetWeight,
     this.currentWeight,
+    this.startWeight,
     this.height,
     this.birthDate,
     this.profileImageUrl,
@@ -31,6 +33,7 @@ class UserProfile {
     String? displayName,
     double? targetWeight,
     double? currentWeight,
+    double? startWeight,
     double? height,
     DateTime? birthDate,
     String? profileImageUrl,
@@ -41,6 +44,7 @@ class UserProfile {
       displayName: displayName ?? this.displayName,
       targetWeight: targetWeight ?? this.targetWeight,
       currentWeight: currentWeight ?? this.currentWeight,
+      startWeight: startWeight ?? this.startWeight,
       height: height ?? this.height,
       birthDate: birthDate ?? this.birthDate,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,

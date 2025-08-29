@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
-import 'package:weight_loss_challenge/screens/home/home_screen.dart';
+import 'package:weight_loss_challenge/screens/home/dashboard_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -43,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (context.mounted && user != null) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
+              builder: (context) => const DashboardScreen(),
             ),
           );
         }

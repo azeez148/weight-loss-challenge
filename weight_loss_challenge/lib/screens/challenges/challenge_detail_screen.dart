@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:weight_loss_challenge/models/challenge.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 
@@ -65,22 +66,21 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // For now, we'll just show a dialog saying this feature is coming soon
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Coming Soon'),
-            content: const Text('Participant invitation will be available soon!'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
+      final challenge = context.read<AppState>().userChallenges
+          .firstWhere((c) => c.id == widget.challengeId);
+
+      final shareText = '''
+Join my Weight Loss Challenge! 🏋️‍♂️💪
+
+Challenge: ${challenge.name}
+Invite Code: ${challenge.inviteCode}
+
+Download the app and enter this invite code to join!''';
+
+      await Share.share(
+        shareText,
+        subject: 'Join Weight Loss Challenge',
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

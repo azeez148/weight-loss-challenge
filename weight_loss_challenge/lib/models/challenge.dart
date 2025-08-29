@@ -19,6 +19,20 @@ class Challenge {
   final ChallengeType type;
   final String inviteCode;
 
+  double get progressPercentage {
+    if (weightLossGoal == null || weightLossGoal! <= 0) return 0.0;
+    final totalWeightLoss = participantProgress.values
+        .expand((entries) => entries)
+        .fold<double>(0.0, (sum, entry) => sum + entry);
+    return (totalWeightLoss / weightLossGoal!) * 100;
+  }
+
+  int get daysRemaining {
+    final now = DateTime.now();
+    if (now.isAfter(endDate)) return 0;
+    return endDate.difference(now).inDays;
+  }
+
   Challenge({
     String? id,
     required this.name,

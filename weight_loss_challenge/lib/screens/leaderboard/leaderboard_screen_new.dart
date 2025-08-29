@@ -53,57 +53,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> with SingleTicker
       ),
       body: Consumer<AppState>(
         builder: (context, appState, child) {
-          final allChallenges = appState.allChallenges;
-          final userChallenges = appState.userChallenges;
-          
-          if (allChallenges.isEmpty) {
-            return const Center(child: Text('No challenges found.'));
+          if (appState.userChallenges.isEmpty) {
+            return const Center(child: Text('No challenges to rank.'));
           }
           
-          // For individual view, only show challenges the user is part of
-          final selectedChallenge = _tabController.index == 0 
-              ? (userChallenges.isEmpty ? allChallenges.first : userChallenges.first)
-              : allChallenges.first;
-              
-          return Column(
+          final challenge = appState.userChallenges.first;
+          return TabBarView(
+            controller: _tabController,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: DropdownButtonFormField<String>(
-                  value: selectedChallenge.id,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Challenge',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: (_tabController.index == 0 ? userChallenges : allChallenges)
-                      .map((challenge) => DropdownMenuItem(
-                            value: challenge.id,
-                            child: Text(challenge.name),
-                          ))
-                      .toList(),
-                  onChanged: (String? challengeId) {
-                    if (challengeId != null) {
-                      setState(() {
-                        // Update the selected challenge
-                      });
-                    }
-                  },
-                ),
+              LeaderboardView(
+                challenge: challenge,
+                isGroupView: false,
               ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    LeaderboardView(
-                      challenge: selectedChallenge,
-                      isGroupView: false,
-                    ),
-                    LeaderboardView(
-                      challenge: selectedChallenge,
-                      isGroupView: true,
-                    ),
-                  ],
-                ),
+              LeaderboardView(
+                challenge: challenge,
+                isGroupView: true,
               ),
             ],
           );
@@ -167,18 +131,26 @@ class LeaderboardView extends StatelessWidget {
   }
 
   Widget _buildGroupLeaderboard(BuildContext context) {
+    // Group users by their team/department if available
     final appState = context.read<AppState>();
-    final allChallenges = appState.allChallenges;
+    final groups = <String, List<String>>{
+      'Team A': ['user1', 'user2'],
+      'Team B': ['user3', 'user4'],
+      // In a real app, you would get this from your backend
+    };
     
-    final entries = allChallenges.map((challenge) {
+    final entries = groups.entries.map((group) {
+      final teamMembers = group.value;
       double totalWeightLoss = 0;
       double totalStartWeight = 0;
       
-      for (final userId in challenge.participantIds) {
-        final weightLoss = challenge.getWeightLoss(userId) ?? 0.0;
-        final userProfile = appState.getUserProfile(userId);
-        totalWeightLoss += weightLoss;
-        totalStartWeight += userProfile?.startWeight ?? 0;
+      for (final userId in teamMembers) {
+        if (challenge.participantIds.contains(userId)) {
+          final weightLoss = challenge.getWeightLoss(userId) ?? 0.0;
+          final userProfile = appState.getUserProfile(userId);
+          totalWeightLoss += weightLoss;
+          totalStartWeight += userProfile?.startWeight ?? 0;
+        }
       }
       
       final weightLossPercentage = totalStartWeight > 0 
@@ -187,12 +159,12 @@ class LeaderboardView extends StatelessWidget {
           
       return LeaderboardEntry(
         user: UserModel(
-          id: challenge.id,
-          name: '${challenge.name} (${challenge.participantIds.length} participants)',
-          email: challenge.description,
-          currentWeight: totalWeightLoss,
+          id: group.key,
+          name: group.key,
+          email: '',
+          currentWeight: 0,
           startWeight: totalStartWeight,
-          targetWeight: challenge.weightLossGoal ?? 0,
+          targetWeight: 0,
         ),
         weightLoss: totalWeightLoss,
         weightLossPercentage: weightLossPercentage,
@@ -229,6 +201,19 @@ class LeaderboardTile extends StatelessWidget {
     this.showPercentage = true,
   });
 
+  Color _getRankColor(int rank) {
+    switch (rank) {
+      case 1:
+        return Colors.amber; // Gold
+      case 2:
+        return Colors.blueGrey; // Silver
+      case 3:
+        return Colors.brown; // Bronze
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -245,22 +230,11 @@ class LeaderboardTile extends StatelessWidget {
           entry.user.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              showPercentage
-                ? '${entry.weightLossPercentage.toStringAsFixed(1)}% lost'
-                : '${entry.weightLoss.toStringAsFixed(1)} kg total weight loss',
-            ),
-            if (!showPercentage && entry.user.email.isNotEmpty)
-              Text(
-                entry.user.email,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-          ],
+        subtitle: Text(
+          showPercentage
+              ? '${entry.weightLossPercentage.toStringAsFixed(1)}% lost'
+              : '${entry.weightLoss.toStringAsFixed(1)} kg lost',
         ),
-        isThreeLine: !showPercentage && entry.user.email.isNotEmpty,
         trailing: Text(
           showPercentage
               ? '${entry.weightLoss.toStringAsFixed(1)} kg'
@@ -269,18 +243,5 @@ class LeaderboardTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getRankColor(int rank) {
-    switch (rank) {
-      case 1:
-        return Colors.amber; // Gold
-      case 2:
-        return Colors.blueGrey; // Silver
-      case 3:
-        return Colors.brown; // Bronze
-      default:
-        return Colors.grey;
-    }
   }
 }

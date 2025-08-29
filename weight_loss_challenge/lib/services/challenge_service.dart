@@ -163,6 +163,16 @@ class ChallengeService {
     _challengesController.add(_challenges);
   }
 
+  // Refresh challenges for a user
+  Future<void> refreshChallenges(String userId) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // In a real app, this would fetch fresh data from the backend
+    // For now, we'll just notify listeners to trigger a UI update
+    _challengesController.add(_challenges);
+  }
+
   // Clean up resources
   void dispose() {
     _challengesController.close();

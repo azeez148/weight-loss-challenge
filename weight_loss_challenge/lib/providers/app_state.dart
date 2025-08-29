@@ -18,15 +18,30 @@ class AppState extends ChangeNotifier {
       ? _profileService.getProfile(currentUser!.id)
       : null;
 
+  UserProfile? getUserProfile(String userId) => _profileService.getProfile(userId);
+
   List<Challenge> get userChallenges => currentUser != null
       ? _challengeService.getActiveChallengesForUser(currentUser!.id)
       : [];
+      
+  List<Challenge> get allChallenges => _challengeService.getAllChallenges();
 
   List<WeightEntry> get userWeightEntries => currentUser != null
       ? _weightService.getWeightEntriesForUser(currentUser!.id)
       : [];
 
   Stream<MockUser?> get authStateChanges => _authService.authStateChanges;
+
+  // Challenge methods
+  Future<Challenge?> getChallengeByInviteCode(String code) async {
+    return await _challengeService.getChallengeByInviteCode(code);
+  }
+
+  Future<void> joinChallenge(String challengeId) async {
+    if (currentUser == null) throw Exception('No user logged in');
+    await _challengeService.joinChallenge(challengeId, currentUser!.id);
+    notifyListeners();
+  }
 
   // Authentication methods
   Future<MockUser?> register({
@@ -94,12 +109,6 @@ class AppState extends ChangeNotifier {
     );
     notifyListeners();
     return challenge;
-  }
-
-  Future<void> joinChallenge(String challengeId) async {
-    if (currentUser == null) throw Exception('Not authenticated');
-    await _challengeService.joinChallenge(challengeId, currentUser!.id);
-    notifyListeners();
   }
 
   Future<void> joinChallengeWithInviteCode(String code) async {
@@ -183,6 +192,12 @@ class AppState extends ChangeNotifier {
       };
     }
     return _weightService.getUserStatistics(currentUser!.id);
+  }
+
+  Future<void> refreshChallenges() async {
+    if (currentUser == null) return;
+    await _challengeService.refreshChallenges(currentUser!.id);
+    notifyListeners();
   }
 
   @override

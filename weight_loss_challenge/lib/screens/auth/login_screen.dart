@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/auth/register_screen.dart';
-import 'package:weight_loss_challenge/screens/home/home_screen.dart';
+import 'package:weight_loss_challenge/screens/home/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,11 +38,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (context.mounted && user != null) {
-          debugPrint('Login successful, navigating to home screen');
-          // Navigate to home screen and remove all previous routes
+          debugPrint('Login successful, navigating to dashboard');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
+              builder: (context) => const DashboardScreen(),
             ),
           );
         }
@@ -150,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Help text
                 if (!_isLoading)
                   const Text(
-                    'Use test@example.com / password123 to login',
+                    'Use test@example.com / password123',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,

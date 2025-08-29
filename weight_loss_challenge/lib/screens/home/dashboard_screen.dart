@@ -6,6 +6,7 @@ import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/auth/login_screen.dart';
 import 'package:weight_loss_challenge/screens/challenges/challenge_detail_screen.dart';
 import 'package:weight_loss_challenge/screens/challenges/create_challenge_screen.dart';
+import 'package:weight_loss_challenge/screens/weight/add_weight_entry_screen.dart';
 import 'package:weight_loss_challenge/theme/app_theme.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -113,7 +114,7 @@ class DashboardScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO: Implement refresh logic
+          await context.read<AppState>().refreshChallenges();
         },
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -126,14 +127,22 @@ class DashboardScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          if (appState.userChallenges.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please join a challenge first')),
+            );
+            return;
+          }
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => const CreateChallengeScreen(),
+              builder: (context) => AddWeightEntryScreen(
+                challenge: appState.userChallenges.first,
+              ),
             ),
           );
         },
-        label: const Text('New Challenge'),
         icon: const Icon(Icons.add),
+        label: const Text('Add Weight'),
       ),
     );
   }
@@ -250,12 +259,28 @@ class DashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Active Challenges',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Active Challenges',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CreateChallengeScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('New Challenge'),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         if (challenges.isEmpty)
@@ -277,15 +302,12 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const CreateChallengeScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('Create your first challenge'),
+                Text(
+                  'Create a new challenge or join an existing one',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
                 ),
               ],
             ),
