@@ -59,8 +59,9 @@ class MockBackend {
         endDate: DateTime.now().add(const Duration(days: 30)),
         creatorId: user1.id,
         participantIds: [user1.id, user2.id],
-        type: ChallengeType.WeightLoss,
+        type: ChallengeType.group,
         weightLossGoal: 5,
+        isActive: true,
         participantProgress: {
           user1.id: [80, 78, 77],
           user2.id: [90, 89],
@@ -74,8 +75,9 @@ class MockBackend {
         endDate: DateTime.now().add(const Duration(days: 60)),
         creatorId: user2.id,
         participantIds: [user2.id],
-        type: ChallengeType.WeightLoss,
+        type: ChallengeType.group,
         weightLossGoal: 8,
+        isActive: true,
       );
       challenges.addAll([challenge1, challenge2]);
 
