@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_loss_challenge/models/user_profile.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
+import 'package:weight_loss_challenge/screens/leaderboard/individual_leaderboard_screen.dart';
 import 'package:weight_loss_challenge/theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -113,6 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileHeader(userProfile),
                   const SizedBox(height: 24),
                   _buildStatisticsCard(appState),
+                  const SizedBox(height: 24),
+                  _buildLeaderboardCard(context),
                   const SizedBox(height: 24),
                   _buildProfileForm(),
                   const SizedBox(height: 24),
@@ -294,6 +297,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildLeaderboardCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Leaderboards',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const IndividualLeaderboardScreen(),
+                    ),
+                  );
+                },
+                child: const Text('View Individual Leaderboard'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
