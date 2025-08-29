@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Help text
                 if (!_isLoading)
                   const Text(
-                    'Use test@example.com / password123',
+                    'For testing, use email: user1@example.com (any password will work)',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
