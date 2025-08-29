@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 enum ChallengeType {
   individual,
   group,
@@ -15,9 +17,10 @@ class Challenge {
   final List<String> participantIds;
   final bool isActive;
   final ChallengeType type;
+  final String inviteCode;
 
   Challenge({
-    required this.id,
+    String? id,
     required this.name,
     required this.description,
     required this.startDate,
@@ -28,7 +31,11 @@ class Challenge {
     required this.type,
     this.weightLossGoal,
     Map<String, List<double>>? participantProgress,
-  }) : participantProgress = participantProgress ?? {};
+    String? inviteCode,
+  })  : id = id ?? const Uuid().v4(),
+        participantProgress = participantProgress ?? {},
+        inviteCode =
+            inviteCode ?? const Uuid().v4().substring(0, 6).toUpperCase();
 
   Challenge copyWith({
     String? id,
@@ -41,6 +48,7 @@ class Challenge {
     List<String>? participantIds,
     bool? isActive,
     ChallengeType? type,
+    String? inviteCode,
   }) {
     return Challenge(
       id: id ?? this.id,
@@ -53,6 +61,7 @@ class Challenge {
       participantIds: participantIds ?? this.participantIds,
       isActive: isActive ?? this.isActive,
       type: type ?? this.type,
+      inviteCode: inviteCode ?? this.inviteCode,
     );
   }
 
@@ -83,6 +92,7 @@ class Challenge {
       'isActive': isActive,
       'type': type.toString().split('.').last,
       'participantProgress': participantProgress,
+      'inviteCode': inviteCode,
     };
   }
 
@@ -104,6 +114,7 @@ class Challenge {
       participantProgress: (map['participantProgress'] as Map<String, dynamic>?)?.map(
         (key, value) => MapEntry(key, List<double>.from(value as List)),
       ),
+      inviteCode: map['inviteCode'] as String?,
     );
   }
 }

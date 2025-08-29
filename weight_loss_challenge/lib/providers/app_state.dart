@@ -102,6 +102,15 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> joinChallengeWithInviteCode(String code) async {
+    if (currentUser == null) throw Exception('Not authenticated');
+    final challenge = await _challengeService.getChallengeByInviteCode(code);
+    if (challenge == null) {
+      throw Exception('Challenge not found with that invite code.');
+    }
+    await joinChallenge(challenge.id);
+  }
+
   Future<void> leaveChallenge(String challengeId) async {
     if (currentUser == null) throw Exception('Not authenticated');
     await _challengeService.leaveChallenge(challengeId, currentUser!.id);
