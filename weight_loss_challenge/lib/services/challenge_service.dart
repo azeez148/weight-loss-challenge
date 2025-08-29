@@ -14,6 +14,16 @@ class ChallengeService {
     return List.unmodifiable(_challenges);
   }
 
+  // Find a challenge by invite code
+  Future<Challenge?> getChallengeByInviteCode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      return _challenges.firstWhere((c) => c.inviteCode.toUpperCase() == code.toUpperCase());
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Get active challenges for a user
   List<Challenge> getActiveChallengesForUser(String userId) {
     return _challenges

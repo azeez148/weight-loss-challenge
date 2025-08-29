@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_loss_challenge/models/challenge.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/auth/login_screen.dart';
 import 'package:weight_loss_challenge/screens/challenges/challenge_detail_screen.dart';
 import 'package:weight_loss_challenge/screens/challenges/create_challenge_screen.dart';
+import 'package:weight_loss_challenge/theme/app_theme.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   void _handleLogout(BuildContext context) async {
     try {
@@ -26,6 +28,54 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
+  void _showJoinChallengeDialog(BuildContext context) {
+    final codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Join a Challenge'),
+          content: TextField(
+            controller: codeController,
+            decoration: const InputDecoration(
+              labelText: 'Invite Code',
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final code = codeController.text.trim();
+                if (code.isNotEmpty) {
+                  try {
+                    await context
+                        .read<AppState>()
+                        .joinChallengeWithInviteCode(code);
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Successfully joined challenge!')),
+                    );
+                  } catch (e) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.toString())),
+                    );
+                  }
+                }
+              },
+              child: const Text('Join'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -36,11 +86,20 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weight Loss Challenge'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            tooltip: 'Join Challenge',
+            onPressed: () => _showJoinChallengeDialog(context),
+          ),
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-  
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Profile coming soon!')),
               );
@@ -67,7 +126,6 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Navigate to create challenge screen
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const CreateChallengeScreen(),
@@ -132,7 +190,7 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).animate().fade(duration: 500.ms).slideY(begin: 0.2, end: 0.0);
   }
 
   String _formatValue(double? value) {
@@ -221,9 +279,10 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to create challenge screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Create challenge coming soon!')),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CreateChallengeScreen(),
+                      ),
                     );
                   },
                   child: const Text('Create your first challenge'),
@@ -241,8 +300,10 @@ class HomeScreen extends StatelessWidget {
               final currentUser = appState.currentUser;
               if (currentUser == null) return const SizedBox.shrink();
 
-              final userProgress = challenge.participantProgress[currentUser.id];
-              final hasProgress = userProgress != null && userProgress.isNotEmpty;
+              final userProgress =
+                  challenge.participantProgress[currentUser.id];
+              final hasProgress =
+                  userProgress != null && userProgress.isNotEmpty;
               final weightLoss = challenge.getWeightLoss(currentUser.id);
               final progressText = hasProgress
                   ? weightLoss != null
@@ -291,7 +352,7 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
                 ),
-              );
+              ).animate().fade(duration: 500.ms).slideY(begin: 0.5, end: 0.0);
             },
           ),
       ],
