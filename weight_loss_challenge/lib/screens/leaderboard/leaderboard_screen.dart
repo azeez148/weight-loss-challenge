@@ -7,8 +7,13 @@ import 'package:weight_loss_challenge/providers/app_state.dart';
 class LeaderboardEntry {
   final UserModel user;
   final double weightLoss;
+  final double weightLossPercentage;
 
-  LeaderboardEntry({required this.user, required this.weightLoss});
+  LeaderboardEntry({
+    required this.user,
+    required this.weightLoss,
+    required this.weightLossPercentage,
+  });
 }
 
 class LeaderboardScreen extends StatelessWidget {
@@ -49,9 +54,22 @@ class LeaderboardView extends StatelessWidget {
     ];
 
     final entries = challenge.participantIds.map((userId) {
-      final user = allUsers.firstWhere((u) => u.id == userId, orElse: () => UserModel(id: userId, name: 'Unknown', email: '', currentWeight: 0, startWeight: 0, targetWeight: 0));
+      final user = allUsers.firstWhere((u) => u.id == userId,
+          orElse: () => UserModel(
+              id: userId,
+              name: 'Unknown',
+              email: '',
+              currentWeight: 0,
+              startWeight: 0,
+              targetWeight: 0));
       final weightLoss = challenge.getWeightLoss(userId) ?? 0.0;
-      return LeaderboardEntry(user: user, weightLoss: weightLoss);
+      final weightLossPercentage =
+          challenge.getWeightLossPercentage(userId) ?? 0.0;
+      return LeaderboardEntry(
+        user: user,
+        weightLoss: weightLoss,
+        weightLossPercentage: weightLossPercentage,
+      );
     }).toList();
 
     entries.sort((a, b) => b.weightLoss.compareTo(a.weightLoss));
@@ -84,7 +102,8 @@ class LeaderboardTile extends StatelessWidget {
           child: Text(rank.toString()),
         ),
         title: Text(entry.user.name),
-        subtitle: Text('Lost ${entry.weightLoss.toStringAsFixed(1)} kg'),
+        subtitle: Text(
+            'Lost ${entry.weightLoss.toStringAsFixed(1)} kg (${entry.weightLossPercentage.toStringAsFixed(1)}%)'),
         trailing: _buildRankBadge(context),
       ),
     );
