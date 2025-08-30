@@ -17,6 +17,11 @@ class WeightService {
     return List.unmodifiable(_weightEntries[userId] ?? []);
   }
 
+  Future<void> fetchWeightEntriesForUser(String userId) async {
+    _weightEntries[userId] = await _api.getWeightEntriesForUser(userId);
+    _notifyListeners();
+  }
+
   Future<WeightEntry> addWeightEntry({
     required String userId,
     required double weight,
