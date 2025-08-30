@@ -78,6 +78,8 @@ class AppState extends ChangeNotifier {
           displayName: user.displayName,
         );
       }
+      await _weightService.fetchWeightEntriesForUser(user.id);
+      await refreshChallenges();
     }
     notifyListeners();
     return user;
