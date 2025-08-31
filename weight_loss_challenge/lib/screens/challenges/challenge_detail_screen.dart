@@ -69,18 +69,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
       final challenge = context.read<AppState>().userChallenges
           .firstWhere((c) => c.id == widget.challengeId);
 
-      final shareText = '''
-Join my Weight Loss Challenge! 🏋️‍♂️💪
-
-Challenge: ${challenge.name}
-Invite Code: ${challenge.inviteCode}
-
-Download the app and enter this invite code to join!''';
-
-      await Share.share(
-        shareText,
-        subject: 'Join Weight Loss Challenge',
-      );
+      final shareText =
+          'Join my Weight Loss Challenge "${challenge.name}"! Use this invite code: ${challenge.inviteCode}';
+      await Share.share(shareText);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -191,11 +182,11 @@ Download the app and enter this invite code to join!''';
                     children: [
                       _buildStatCard(
                         'Starting Weight',
-                        '${progress.first.toStringAsFixed(1)} kg',
+                        '${progress.first.weight.toStringAsFixed(1)} kg',
                       ),
                       _buildStatCard(
                         'Current Weight',
-                        '${progress.last.toStringAsFixed(1)} kg',
+                        '${progress.last.weight.toStringAsFixed(1)} kg',
                       ),
                     ],
                   ),
@@ -229,12 +220,14 @@ Download the app and enter this invite code to join!''';
                       helperText: 'e.g., 75.5',
                     ),
                     keyboardType: TextInputType.number,
-                    enabled: !_isLoading,
+                    enabled: !_isLoading && !challenge.isReadOnly(currentUser.id),
                   ),
                 ),
                 const SizedBox(width: 16),
                 IconButton(
-                  onPressed: _isLoading ? null : _recordWeight,
+                  onPressed: _isLoading || challenge.isReadOnly(currentUser.id)
+                      ? null
+                      : _recordWeight,
                   icon: _isLoading
                       ? const SizedBox(
                           width: 20,
@@ -251,7 +244,10 @@ Download the app and enter this invite code to join!''';
     );
   }
 
-  Widget _buildParticipantsSection(Challenge challenge) {
+  Widget _buildParticipantsSection(Challenge challenge, AppState appState) {
+    final currentUser = appState.currentUser;
+    final isHost = challenge.creatorId == currentUser?.id;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -268,21 +264,115 @@ Download the app and enter this invite code to join!''';
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (challenge.type == ChallengeType.group)
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : _inviteParticipants,
-                    icon: const Icon(Icons.person_add),
-                    label: const Text('Invite'),
+                if (isHost || challenge.participantIds.contains(currentUser?.id))
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: _isLoading ? null : _inviteParticipants,
+                        icon: const Icon(Icons.share),
+                        label: const Text('Share Invite'),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // TODO: Implement QR code generation and sharing.
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('QR code generation not implemented yet.')),
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code),
+                      ),
+                    ],
                   ),
               ],
             ),
             const SizedBox(height: 16),
-            // TODO: Replace with actual participant list once user profiles are implemented
-            Text('${challenge.participantIds.length} participants'),
+            if (isHost)
+              const Chip(
+                label: Text('Hosted by you'),
+                backgroundColor: Colors.green,
+                labelStyle: TextStyle(color: Colors.white),
+              ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: challenge.participantIds.length,
+              itemBuilder: (context, index) {
+                final participantId = challenge.participantIds[index];
+                final user = appState.getUserProfile(participantId);
+                final isCreator = challenge.creatorId == participantId;
+                final progress = challenge.participantProgress[participantId] ?? [];
+                return ExpansionTile(
+                  leading: CircleAvatar(
+                    child: Text(user?.name[0].toUpperCase() ?? ''),
+                  ),
+                  title: Text(user?.name ?? 'Unknown User'),
+                  trailing: isCreator ? const Chip(label: Text('Host')) : null,
+                  children: [
+                    if (progress.isEmpty)
+                      const ListTile(
+                        title: Text('No weight entries yet.'),
+                      )
+                    else
+                      ...progress.asMap().entries.map((entryMap) {
+                        final entryIndex = entryMap.key;
+                        final entry = entryMap.value;
+                        final canApprove =
+                            entry.approvalStatus == WeightEntryApprovalStatus.pending &&
+                                participantId != appState.currentUser?.id &&
+                                challenge.participantIds
+                                    .contains(appState.currentUser?.id);
+                        return ListTile(
+                          title: Text('${entry.weight} kg'),
+                          subtitle: Text(
+                              '${entry.timestamp.toString().split(' ')[0]} - ${entry.approvalStatus.toString().split('.').last}'),
+                          trailing: canApprove
+                              ? ElevatedButton(
+                                  onPressed: () {
+                                    appState.approveWeightEntry(
+                                        challenge.id, participantId, entryIndex);
+                                  },
+                                  child: const Text('Approve'),
+                                )
+                              : null,
+                        );
+                      }),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _voteToEndChallenge(Challenge challenge) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vote to End Challenge'),
+        content: const Text(
+            'Are you sure you want to vote to end this challenge? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Vote'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await context.read<AppState>().endChallenge(challenge.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your vote has been cast!')),
+      );
+    }
   }
 
   Widget _buildStatCard(String label, String value, {Color? color}) {
@@ -330,12 +420,21 @@ Download the app and enter this invite code to join!''';
                     case 'leave':
                       _leaveChallenge(challenge);
                       break;
+                    case 'end':
+                      _voteToEndChallenge(challenge);
+                      break;
                   }
                 },
                 itemBuilder: (BuildContext context) => [
                   const PopupMenuItem<String>(
                     value: 'leave',
                     child: Text('Leave Challenge'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'end',
+                    enabled: !challenge.isReadOnly(appState.currentUser!.id),
+                    child: Text(
+                        'Vote to End Challenge (${challenge.endChallengeVotes.length}/${challenge.initialParticipantIds.length})'),
                   ),
                 ],
               ),
@@ -397,8 +496,70 @@ Download the app and enter this invite code to join!''';
               const SizedBox(height: 16),
               _buildProgressSection(challenge, appState),
               const SizedBox(height: 16),
-              _buildParticipantsSection(challenge),
+              _buildParticipantsSection(challenge, appState),
+              if (challenge.isPublic &&
+                  !challenge.participantIds.contains(appState.currentUser?.id))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await appState.requestToJoinPublicChallenge(
+                          challenge.id, appState.currentUser!.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Request to join sent!')),
+                      );
+                    },
+                    child: const Text('Request to Join'),
+                  ),
+                ),
+              if (challenge.creatorId == appState.currentUser?.id)
+                _buildPendingRequestsSection(challenge, appState),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPendingRequestsSection(Challenge challenge, AppState appState) {
+    return FutureBuilder<List<String>>(
+      future: appState.getPendingJoinRequests(challenge.id),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final requestIds = snapshot.data!;
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pending Join Requests',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: requestIds.length,
+                  itemBuilder: (context, index) {
+                    final userId = requestIds[index];
+                    final user = appState.getUserProfile(userId);
+                    return ListTile(
+                      title: Text(user?.name ?? 'Unknown User'),
+                      trailing: ElevatedButton(
+                        onPressed: () async {
+                          await appState.approveJoinRequest(challenge.id, userId);
+                        },
+                        child: const Text('Approve'),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

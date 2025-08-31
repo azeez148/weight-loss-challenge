@@ -1,57 +1,62 @@
+import 'package:uuid/uuid.dart';
+
+enum WeightEntryApprovalStatus {
+  pending,
+  approved,
+  rejected,
+}
+
 class WeightEntry {
   final String id;
-  final String userId;
-  final String? challengeId;
   final double weight;
-  final DateTime date;
-  final String? note;
+  final DateTime timestamp;
+  final WeightEntryApprovalStatus approvalStatus;
+  final String? approvedBy; // userId of the approver
 
   WeightEntry({
-    required this.id,
-    required this.userId,
-    this.challengeId,
-    required this.weight,
-    required this.date,
-    this.note,
-  });
-
-  WeightEntry copyWith({
     String? id,
-    String? userId,
-    String? challengeId,
-    double? weight,
-    DateTime? date,
-    String? note,
-  }) {
-    return WeightEntry(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      challengeId: challengeId ?? this.challengeId,
-      weight: weight ?? this.weight,
-      date: date ?? this.date,
-      note: note ?? this.note,
-    );
-  }
+    required this.weight,
+    required this.timestamp,
+    this.approvalStatus = WeightEntryApprovalStatus.pending,
+    this.approvedBy,
+  }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'userId': userId,
-      'challengeId': challengeId,
       'weight': weight,
-      'date': date.toIso8601String(),
-      'note': note,
+      'timestamp': timestamp.toIso8601String(),
+      'approvalStatus': approvalStatus.toString().split('.').last,
+      'approvedBy': approvedBy,
     };
   }
 
   factory WeightEntry.fromMap(Map<String, dynamic> map) {
     return WeightEntry(
-      id: map['id'] as String,
-      userId: map['userId'] as String,
-      challengeId: map['challengeId'] as String,
-      weight: map['weight'] as double,
-      date: DateTime.parse(map['date'] as String),
-      note: map['note'] as String?,
+      id: map['id'],
+      weight: (map['weight'] ?? 0.0).toDouble(),
+      timestamp: DateTime.parse(map['timestamp']),
+      approvalStatus: WeightEntryApprovalStatus.values.firstWhere(
+        (e) => e.toString().split('.').last == map['approvalStatus'],
+        orElse: () => WeightEntryApprovalStatus.pending,
+      ),
+      approvedBy: map['approvedBy'],
+    );
+  }
+
+  WeightEntry copyWith({
+    String? id,
+    double? weight,
+    DateTime? timestamp,
+    WeightEntryApprovalStatus? approvalStatus,
+    String? approvedBy,
+  }) {
+    return WeightEntry(
+      id: id ?? this.id,
+      weight: weight ?? this.weight,
+      timestamp: timestamp ?? this.timestamp,
+      approvalStatus: approvalStatus ?? this.approvalStatus,
+      approvedBy: approvedBy ?? this.approvedBy,
     );
   }
 }

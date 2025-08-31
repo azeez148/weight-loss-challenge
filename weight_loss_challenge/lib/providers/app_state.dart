@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/challenge.dart';
-import '../models/user_profile.dart';
+import '../models/user_model.dart';
 import '../models/weight_entry.dart';
 import '../services/auth_service.dart';
 import '../services/challenge_service.dart';
@@ -14,11 +14,11 @@ class AppState extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();
 
   MockUser? get currentUser => _authService.currentUser;
-  UserProfile? get userProfile => currentUser != null 
+  UserModel? get userProfile => currentUser != null
       ? _profileService.getProfile(currentUser!.id)
       : null;
 
-  UserProfile? getUserProfile(String userId) => _profileService.getProfile(userId);
+  UserModel? getUserProfile(String userId) => _profileService.getProfile(userId);
 
   List<Challenge> get userChallenges => currentUser != null
       ? _challengeService.getActiveChallengesForUser(currentUser!.id)
@@ -59,7 +59,7 @@ class AppState extends ChangeNotifier {
       await _profileService.updateProfile(
         userId: user.id,
         email: user.email,
-        displayName: user.displayName,
+        name: user.displayName,
       );
       notifyListeners();
     }
@@ -75,7 +75,7 @@ class AppState extends ChangeNotifier {
         await _profileService.updateProfile(
           userId: user.id,
           email: user.email,
-          displayName: user.displayName,
+          name: user.displayName,
         );
       }
       await _weightService.fetchWeightEntriesForUser(user.id);
@@ -98,6 +98,10 @@ class AppState extends ChangeNotifier {
     required DateTime endDate,
     required ChallengeType type,
     double? weightLossGoal,
+    required bool isPublic,
+    required DateTime joinEndDate,
+    required DateTime entryWeightEndDate,
+    required DateTime finalWeightEndDate,
   }) async {
     if (currentUser == null) throw Exception('Not authenticated');
     final challenge = await _challengeService.createChallenge(
@@ -108,6 +112,10 @@ class AppState extends ChangeNotifier {
       type: type,
       weightLossGoal: weightLossGoal,
       creatorId: currentUser!.id,
+      isPublic: isPublic,
+      joinEndDate: joinEndDate,
+      entryWeightEndDate: entryWeightEndDate,
+      finalWeightEndDate: finalWeightEndDate,
     );
     notifyListeners();
     return challenge;
@@ -125,6 +133,35 @@ class AppState extends ChangeNotifier {
   Future<void> leaveChallenge(String challengeId) async {
     if (currentUser == null) throw Exception('Not authenticated');
     await _challengeService.leaveChallenge(challengeId, currentUser!.id);
+    notifyListeners();
+  }
+
+  Future<void> requestToJoinPublicChallenge(
+      String challengeId, String userId) async {
+    await _challengeService.requestToJoinPublicChallenge(challengeId, userId);
+    notifyListeners();
+  }
+
+  Future<List<String>> getPendingJoinRequests(String challengeId) async {
+    return await _challengeService.getPendingJoinRequests(challengeId);
+  }
+
+  Future<void> approveJoinRequest(String challengeId, String userId) async {
+    await _challengeService.approveJoinRequest(challengeId, userId);
+    notifyListeners();
+  }
+
+  Future<void> approveWeightEntry(
+      String challengeId, String entryUserId, int entryIndex) async {
+    if (currentUser == null) throw Exception('Not authenticated');
+    await _challengeService.approveWeightEntry(
+        challengeId, currentUser!.id, entryUserId, entryIndex);
+    notifyListeners();
+  }
+
+  Future<void> endChallenge(String challengeId) async {
+    if (currentUser == null) throw Exception('Not authenticated');
+    await _challengeService.endChallenge(challengeId, currentUser!.id);
     notifyListeners();
   }
 
@@ -154,31 +191,29 @@ class AppState extends ChangeNotifier {
     return entry;
   }
 
-  Future<void> deleteWeightEntry(String entryId) async {
+  Future<void> deleteWeightEntry(String weightEntryId) async {
     if (currentUser == null) throw Exception('Not authenticated');
-    await _weightService.deleteWeightEntry(currentUser!.id, entryId);
+    await _weightService.deleteWeightEntry(currentUser!.id, weightEntryId);
     notifyListeners();
   }
 
   // Profile methods
-  Future<UserProfile> updateProfile({
-    String? displayName,
+  Future<UserModel> updateProfile({
+    String? name,
     double? targetWeight,
     double? currentWeight,
     double? height,
-    DateTime? birthDate,
-    String? profileImageUrl,
+    DateTime? lastRecordedDateTime,
   }) async {
     if (currentUser == null) throw Exception('Not authenticated');
     final profile = await _profileService.updateProfile(
       userId: currentUser!.id,
       email: currentUser!.email,
-      displayName: displayName,
+      name: name,
       targetWeight: targetWeight,
       currentWeight: currentWeight,
       height: height,
-      birthDate: birthDate,
-      profileImageUrl: profileImageUrl,
+      lastRecordedDateTime: lastRecordedDateTime,
     );
     notifyListeners();
     return profile;

@@ -1,40 +1,38 @@
 import 'dart:async';
 import 'package:weight_loss_challenge/api/profile_api.dart';
-import '../models/user_profile.dart';
+import '../models/user_model.dart';
 
 class ProfileService {
   final ProfileApi _api = ProfileApi();
-  final Map<String, UserProfile> _profiles = {};
-  final _profileController = StreamController<UserProfile?>.broadcast();
+  final Map<String, UserModel> _profiles = {};
+  final _profileController = StreamController<UserModel?>.broadcast();
 
-  Stream<UserProfile?> getProfileStream(String userId) {
+  Stream<UserModel?> getProfileStream(String userId) {
     return _profileController.stream
         .map((profile) => profile?.id == userId ? profile : null);
   }
 
-  UserProfile? getProfile(String userId) {
+  UserModel? getProfile(String userId) {
     return _profiles[userId];
   }
 
-  Future<UserProfile> updateProfile({
+  Future<UserModel> updateProfile({
     required String userId,
     required String email,
-    String? displayName,
+    String? name,
     double? targetWeight,
     double? currentWeight,
     double? height,
-    DateTime? birthDate,
-    String? profileImageUrl,
+    DateTime? lastRecordedDateTime,
   }) async {
     final updatedProfile = await _api.updateProfile(
       userId: userId,
       email: email,
-      displayName: displayName,
+      name: name,
       targetWeight: targetWeight,
       currentWeight: currentWeight,
       height: height,
-      birthDate: birthDate,
-      profileImageUrl: profileImageUrl,
+      lastRecordedDateTime: lastRecordedDateTime,
     );
     _profiles[userId] = updatedProfile;
     _profileController.add(updatedProfile);

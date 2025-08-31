@@ -38,6 +38,10 @@ class ChallengeService {
     required String creatorId,
     required ChallengeType type,
     double? weightLossGoal,
+    required bool isPublic,
+    required DateTime joinEndDate,
+    required DateTime entryWeightEndDate,
+    required DateTime finalWeightEndDate,
   }) async {
     final challenge = await _api.createChallenge(
       name: name,
@@ -47,6 +51,10 @@ class ChallengeService {
       creatorId: creatorId,
       type: type,
       weightLossGoal: weightLossGoal,
+      isPublic: isPublic,
+      joinEndDate: joinEndDate,
+      entryWeightEndDate: entryWeightEndDate,
+      finalWeightEndDate: finalWeightEndDate,
     );
     _challenges.add(challenge);
     _challengesController.add(_challenges);
@@ -74,6 +82,34 @@ class ChallengeService {
       weight: weight,
     );
     await refreshChallenges(userId);
+  }
+
+  Future<void> requestToJoinPublicChallenge(String challengeId, String userId) async {
+    await _api.requestToJoinPublicChallenge(challengeId, userId);
+    await refreshChallenges(userId);
+  }
+
+  Future<List<String>> getPendingJoinRequests(String challengeId) async {
+    return await _api.getPendingJoinRequests(challengeId);
+  }
+
+  Future<void> approveJoinRequest(String challengeId, String userId) async {
+    await _api.approveJoinRequest(challengeId, userId);
+    await refreshChallenges(userId);
+  }
+
+  Future<void> endChallenge(String challengeId, String userId) async {
+    await _api.endChallenge(challengeId, userId);
+    await refreshChallenges(userId);
+  }
+
+  Future<List<String>> getWinners(String challengeId) async {
+    return await _api.getWinners(challengeId);
+  }
+
+  Future<void> approveWeightEntry(String challengeId, String approverUserId, String entryUserId, int entryIndex) async {
+    await _api.approveWeightEntry(challengeId, approverUserId, entryUserId, entryIndex);
+    await refreshChallenges(entryUserId);
   }
 
   Future<void> refreshChallenges(String userId) async {

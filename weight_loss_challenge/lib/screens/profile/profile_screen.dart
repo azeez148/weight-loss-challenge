@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:weight_loss_challenge/models/user_profile.dart';
+import 'package:weight_loss_challenge/models/user_model.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/leaderboard/individual_leaderboard_screen.dart';
 import 'package:weight_loss_challenge/theme/app_theme.dart';
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,9 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _initializeControllers() {
     final userProfile = context.read<AppState>().userProfile;
     if (userProfile != null) {
-      _nameController.text = userProfile.displayName;
-      _targetWeightController.text = userProfile.targetWeight?.toString() ?? '';
-      _currentWeightController.text = userProfile.currentWeight?.toString() ?? '';
+      _nameController.text = userProfile.name;
+      _targetWeightController.text = userProfile.targetWeight.toString();
+      _currentWeightController.text = userProfile.currentWeight.toString();
       _heightController.text = userProfile.height?.toString() ?? '';
     }
   }
@@ -54,11 +55,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await context.read<AppState>().updateProfile(
-        displayName: _nameController.text,
-        targetWeight: double.tryParse(_targetWeightController.text),
-        currentWeight: double.tryParse(_currentWeightController.text),
-        height: double.tryParse(_heightController.text),
-      );
+            name: _nameController.text,
+            targetWeight: double.tryParse(_targetWeightController.text),
+            currentWeight: double.tryParse(_currentWeightController.text),
+            height: double.tryParse(_heightController.text),
+            lastRecordedDateTime: DateTime.now(),
+          );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
@@ -117,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildLeaderboardCard(context),
                   const SizedBox(height: 24),
-                  _buildProfileForm(),
+                  _buildProfileForm(userProfile),
                   const SizedBox(height: 24),
                   _buildWeightHistoryCard(appState),
                 ],
@@ -129,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(UserProfile profile) {
+  Widget _buildProfileHeader(UserModel profile) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -139,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               radius: 40,
               backgroundColor: Theme.of(context).primaryColor,
               child: Text(
-                profile.displayName[0].toUpperCase(),
+                profile.name[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 32,
                   color: Colors.white,
@@ -153,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    profile.displayName,
+                    profile.name,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Text(
@@ -214,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileForm() {
+  Widget _buildProfileForm(UserModel userProfile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -296,6 +298,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return null;
           },
         ),
+        const SizedBox(height: 16),
+        if (userProfile.lastRecordedDateTime != null)
+          Text(
+            'Last Recorded: ${DateFormat.yMd().add_jm().format(userProfile.lastRecordedDateTime!)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
       ],
     );
   }
@@ -373,8 +381,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final entry = entries[index];
                 return ListTile(
                   title: Text('${entry.weight} kg'),
-                  subtitle: Text(entry.date.toString().split(' ')[0]),
-                  trailing: entry.note != null ? Text(entry.note!) : null,
+                  subtitle: Text(entry.timestamp.toString().split(' ')[0]),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      context.read<AppState>().deleteWeightEntry(entry.id);
+                    },
+                  ),
                 );
               },
             ),
