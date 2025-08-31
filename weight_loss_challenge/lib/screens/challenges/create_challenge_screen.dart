@@ -16,10 +16,14 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _targetWeightController = TextEditingController();
-  
+
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  DateTime _joinEndDate = DateTime.now().add(const Duration(days: 7));
+  DateTime _entryWeightEndDate = DateTime.now().add(const Duration(days: 7));
+  DateTime _finalWeightEndDate = DateTime.now().add(const Duration(days: 30));
   ChallengeType _type = ChallengeType.individual;
+  bool _isPublic = false;
   bool _isLoading = false;
 
   @override
@@ -50,9 +54,13 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
           type: _type,
           startDate: _startDate,
           endDate: _endDate,
-          weightLossGoal: _targetWeightController.text.isEmpty 
-              ? null 
+          weightLossGoal: _targetWeightController.text.isEmpty
+              ? null
               : double.parse(_targetWeightController.text),
+          isPublic: _isPublic,
+          joinEndDate: _joinEndDate,
+          entryWeightEndDate: _entryWeightEndDate,
+          finalWeightEndDate: _finalWeightEndDate,
         );
 
         if (context.mounted) {
@@ -61,7 +69,8 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
           );
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => ChallengeDetailScreen(challengeId: challenge.id),
+              builder: (context) =>
+                  ChallengeDetailScreen(challengeId: challenge.id),
             ),
           );
         }
@@ -84,29 +93,18 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
     }
   }
 
-  Future<void> _selectDate(bool isStartDate) async {
-    final initialDate = isStartDate ? _startDate : _endDate;
-    final minDate = isStartDate ? DateTime.now() : _startDate;
-    final maxDate = DateTime.now().add(const Duration(days: 365));
-
+  Future<void> _selectDate(BuildContext context,
+      {required DateTime initialDate,
+      required Function(DateTime) onDateSelected}) async {
     final date = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: minDate,
-      lastDate: maxDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
     if (date != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = date;
-          if (_endDate.isBefore(_startDate)) {
-            _endDate = _startDate.add(const Duration(days: 30));
-          }
-        } else {
-          _endDate = date;
-        }
-      });
+      onDateSelected(date);
     }
   }
 
@@ -155,6 +153,15 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
                         onSelectionChanged: (Set<ChallengeType> types) {
                           setState(() {
                             _type = types.first;
+                          });
+                        },
+                      ),
+                      SwitchListTile(
+                        title: const Text('Public Challenge'),
+                        value: _isPublic,
+                        onChanged: (value) {
+                          setState(() {
+                            _isPublic = value;
                           });
                         },
                       ),
@@ -273,7 +280,7 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Challenge Duration',
+                        'Challenge Timelines',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -286,7 +293,10 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
                           '${_startDate.year}-${_startDate.month.toString().padLeft(2, '0')}-${_startDate.day.toString().padLeft(2, '0')}',
                         ),
                         trailing: const Icon(Icons.calendar_today),
-                        onTap: () => _selectDate(true),
+                        onTap: () => _selectDate(context,
+                            initialDate: _startDate,
+                            onDateSelected: (date) =>
+                                setState(() => _startDate = date)),
                       ),
                       ListTile(
                         title: const Text('End Date'),
@@ -294,7 +304,43 @@ class _CreateChallengeScreenState extends State<CreateChallengeScreen> {
                           '${_endDate.year}-${_endDate.month.toString().padLeft(2, '0')}-${_endDate.day.toString().padLeft(2, '0')}',
                         ),
                         trailing: const Icon(Icons.calendar_today),
-                        onTap: () => _selectDate(false),
+                        onTap: () => _selectDate(context,
+                            initialDate: _endDate,
+                            onDateSelected: (date) =>
+                                setState(() => _endDate = date)),
+                      ),
+                      ListTile(
+                        title: const Text('Join End Date'),
+                        subtitle: Text(
+                          '${_joinEndDate.year}-${_joinEndDate.month.toString().padLeft(2, '0')}-${_joinEndDate.day.toString().padLeft(2, '0')}',
+                        ),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () => _selectDate(context,
+                            initialDate: _joinEndDate,
+                            onDateSelected: (date) =>
+                                setState(() => _joinEndDate = date)),
+                      ),
+                      ListTile(
+                        title: const Text('Entry Weight End Date'),
+                        subtitle: Text(
+                          '${_entryWeightEndDate.year}-${_entryWeightEndDate.month.toString().padLeft(2, '0')}-${_entryWeightEndDate.day.toString().padLeft(2, '0')}',
+                        ),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () => _selectDate(context,
+                            initialDate: _entryWeightEndDate,
+                            onDateSelected: (date) =>
+                                setState(() => _entryWeightEndDate = date)),
+                      ),
+                      ListTile(
+                        title: const Text('Final Weight End Date'),
+                        subtitle: Text(
+                          '${_finalWeightEndDate.year}-${_finalWeightEndDate.month.toString().padLeft(2, '0')}-${_finalWeightEndDate.day.toString().padLeft(2, '0')}',
+                        ),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () => _selectDate(context,
+                            initialDate: _finalWeightEndDate,
+                            onDateSelected: (date) =>
+                                setState(() => _finalWeightEndDate = date)),
                       ),
                     ],
                   ),

@@ -1,38 +1,36 @@
 import 'package:weight_loss_challenge/api/mock_backend.dart';
-import 'package:weight_loss_challenge/models/user_profile.dart';
+import 'package:weight_loss_challenge/models/user_model.dart';
 
 class ProfileApi {
   final MockBackend _backend = MockBackend();
 
-  Future<UserProfile?> getProfile(String userId) async {
+  Future<UserModel?> getProfile(String userId) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    return _backend.profiles[userId];
+    return _backend.users[userId];
   }
 
-  Future<UserProfile> updateProfile({
+  Future<UserModel> updateProfile({
     required String userId,
     required String email,
-    String? displayName,
+    String? name,
     double? targetWeight,
     double? currentWeight,
     double? height,
-    DateTime? birthDate,
-    String? profileImageUrl,
+    DateTime? lastRecordedDateTime,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    final currentProfile = _backend.profiles[userId];
-    final updatedProfile = UserProfile(
+    final currentUser = _backend.users[userId];
+    final updatedUser = UserModel(
       id: userId,
       email: email,
-      displayName: displayName ?? currentProfile?.displayName ?? '',
-      targetWeight: targetWeight ?? currentProfile?.targetWeight,
-      currentWeight: currentWeight ?? currentProfile?.currentWeight,
-      height: height ?? currentProfile?.height,
-      birthDate: birthDate ?? currentProfile?.birthDate,
-      profileImageUrl: profileImageUrl ?? currentProfile?.profileImageUrl,
-      startWeight: currentProfile?.startWeight,
+      name: name ?? currentUser?.name ?? '',
+      targetWeight: targetWeight ?? currentUser?.targetWeight ?? 0.0,
+      currentWeight: currentWeight ?? currentUser?.currentWeight ?? 0.0,
+      height: height ?? currentUser?.height,
+      lastRecordedDateTime: lastRecordedDateTime ?? currentUser?.lastRecordedDateTime,
+      startWeight: currentUser?.startWeight ?? 0.0,
     );
-    _backend.profiles[userId] = updatedProfile;
-    return updatedProfile;
+    _backend.users[userId] = updatedUser;
+    return updatedUser;
   }
 }

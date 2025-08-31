@@ -1,5 +1,6 @@
 import 'package:weight_loss_challenge/api/mock_backend.dart';
 import 'package:weight_loss_challenge/models/challenge.dart';
+import 'package:weight_loss_challenge/models/weight_entry.dart';
 
 class ChallengeApi {
   final MockBackend _backend = MockBackend();
@@ -34,6 +35,10 @@ class ChallengeApi {
     required String creatorId,
     required ChallengeType type,
     double? weightLossGoal,
+    required bool isPublic,
+    required DateTime joinEndDate,
+    required DateTime entryWeightEndDate,
+    required DateTime finalWeightEndDate,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     final challenge = Challenge(
@@ -45,8 +50,13 @@ class ChallengeApi {
       weightLossGoal: weightLossGoal,
       creatorId: creatorId,
       participantIds: [creatorId],
+      initialParticipantIds: [creatorId],
       isActive: true,
       type: type,
+      isPublic: isPublic,
+      joinEndDate: joinEndDate,
+      entryWeightEndDate: entryWeightEndDate,
+      finalWeightEndDate: finalWeightEndDate,
     );
     _backend.challenges.add(challenge);
     return challenge;
@@ -107,15 +117,45 @@ class ChallengeApi {
     }
 
     final progress =
-        Map<String, List<double>>.from(challenge.participantProgress);
+        Map<String, List<WeightEntry>>.from(challenge.participantProgress);
     if (!progress.containsKey(userId)) {
       progress[userId] = [];
     }
-    progress[userId]!.add(weight);
+    progress[userId]!.add(WeightEntry(weight: weight, timestamp: DateTime.now()));
 
     final updatedChallenge = challenge.copyWith(
       participantProgress: progress,
     );
     _backend.challenges[index] = updatedChallenge;
+  }
+
+  Future<void> requestToJoinPublicChallenge(String challengeId, String userId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.requestToJoinPublicChallenge(challengeId, userId);
+  }
+
+  Future<List<String>> getPendingJoinRequests(String challengeId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.getPendingJoinRequests(challengeId);
+  }
+
+  Future<void> approveJoinRequest(String challengeId, String userId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.approveJoinRequest(challengeId, userId);
+  }
+
+  Future<void> endChallenge(String challengeId, String userId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.endChallenge(challengeId, userId);
+  }
+
+  Future<List<String>> getWinners(String challengeId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.getWinners(challengeId);
+  }
+
+  Future<void> approveWeightEntry(String challengeId, String approverUserId, String entryUserId, int entryIndex) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _backend.approveWeightEntry(challengeId, approverUserId, entryUserId, entryIndex);
   }
 }

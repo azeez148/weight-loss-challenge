@@ -6,6 +6,8 @@ class UserModel {
   final double startWeight;
   final double targetWeight;
   final List<String> challengeIds;
+  final double? height;
+  final DateTime? lastRecordedDateTime;
 
   UserModel({
     required this.id,
@@ -15,6 +17,8 @@ class UserModel {
     required this.startWeight,
     required this.targetWeight,
     this.challengeIds = const [],
+    this.height,
+    this.lastRecordedDateTime,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +30,8 @@ class UserModel {
       'startWeight': startWeight,
       'targetWeight': targetWeight,
       'challengeIds': challengeIds,
+      'height': height,
+      'lastRecordedDateTime': lastRecordedDateTime?.toIso8601String(),
     };
   }
 
@@ -38,6 +44,10 @@ class UserModel {
       startWeight: (map['startWeight'] ?? 0.0).toDouble(),
       targetWeight: (map['targetWeight'] ?? 0.0).toDouble(),
       challengeIds: List<String>.from(map['challengeIds'] ?? []),
+      height: (map['height'] as num?)?.toDouble(),
+      lastRecordedDateTime: map['lastRecordedDateTime'] != null
+          ? DateTime.parse(map['lastRecordedDateTime'])
+          : null,
     );
   }
 
@@ -49,6 +59,8 @@ class UserModel {
     double? startWeight,
     double? targetWeight,
     List<String>? challengeIds,
+    double? height,
+    DateTime? lastRecordedDateTime,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -58,6 +70,8 @@ class UserModel {
       startWeight: startWeight ?? this.startWeight,
       targetWeight: targetWeight ?? this.targetWeight,
       challengeIds: challengeIds ?? this.challengeIds,
+      height: height ?? this.height,
+      lastRecordedDateTime: lastRecordedDateTime ?? this.lastRecordedDateTime,
     );
   }
 }

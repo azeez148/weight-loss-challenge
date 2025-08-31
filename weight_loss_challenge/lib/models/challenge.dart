@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+import 'package:weight_loss_challenge/models/weight_entry.dart';
 
 enum ChallengeType {
   individual,
@@ -12,18 +13,27 @@ class Challenge {
   final DateTime startDate;
   final DateTime endDate;
   final double? weightLossGoal; // Optional weight loss goal
-  final Map<String, List<double>> participantProgress; // Track each participant's weight entries
+  final Map<String, List<WeightEntry>>
+      participantProgress; // Track each participant's weight entries
   final String creatorId;
   final List<String> participantIds;
   final bool isActive;
   final ChallengeType type;
   final String inviteCode;
+  final bool isPublic;
+  final DateTime joinEndDate;
+  final DateTime entryWeightEndDate;
+  final DateTime finalWeightEndDate;
+  final Map<String, bool> endChallengeVotes;
+  final List<String> pendingJoinRequests;
+  final List<String> initialParticipantIds;
 
   double get progressPercentage {
     if (weightLossGoal == null || weightLossGoal! <= 0) return 0.0;
     final totalWeightLoss = participantProgress.values
         .expand((entries) => entries)
-        .fold<double>(0.0, (sum, entry) => sum + entry);
+        .where((entry) => entry.approvalStatus == WeightEntryApprovalStatus.approved)
+        .fold<double>(0.0, (sum, entry) => sum + entry.weight);
     return (totalWeightLoss / weightLossGoal!) * 100;
   }
 
@@ -44,10 +54,20 @@ class Challenge {
     required this.isActive,
     required this.type,
     this.weightLossGoal,
-    Map<String, List<double>>? participantProgress,
+    Map<String, List<WeightEntry>>? participantProgress,
     String? inviteCode,
+    this.isPublic = false,
+    required this.joinEndDate,
+    required this.entryWeightEndDate,
+    required this.finalWeightEndDate,
+    Map<String, bool>? endChallengeVotes,
+    List<String>? pendingJoinRequests,
+    List<String>? initialParticipantIds,
   })  : id = id ?? const Uuid().v4(),
         participantProgress = participantProgress ?? {},
+        endChallengeVotes = endChallengeVotes ?? {},
+        pendingJoinRequests = pendingJoinRequests ?? [],
+        initialParticipantIds = initialParticipantIds ?? [],
         inviteCode =
             inviteCode ?? const Uuid().v4().substring(0, 6).toUpperCase();
 
@@ -58,12 +78,19 @@ class Challenge {
     DateTime? startDate,
     DateTime? endDate,
     double? weightLossGoal,
-    Map<String, List<double>>? participantProgress,
+    Map<String, List<WeightEntry>>? participantProgress,
     String? creatorId,
     List<String>? participantIds,
     bool? isActive,
     ChallengeType? type,
     String? inviteCode,
+    bool? isPublic,
+    DateTime? joinEndDate,
+    DateTime? entryWeightEndDate,
+    DateTime? finalWeightEndDate,
+    Map<String, bool>? endChallengeVotes,
+    List<String>? pendingJoinRequests,
+    List<String>? initialParticipantIds,
   }) {
     return Challenge(
       id: id ?? this.id,
@@ -78,21 +105,43 @@ class Challenge {
       isActive: isActive ?? this.isActive,
       type: type ?? this.type,
       inviteCode: inviteCode ?? this.inviteCode,
+      isPublic: isPublic ?? this.isPublic,
+      joinEndDate: joinEndDate ?? this.joinEndDate,
+      entryWeightEndDate: entryWeightEndDate ?? this.entryWeightEndDate,
+      finalWeightEndDate: finalWeightEndDate ?? this.finalWeightEndDate,
+      endChallengeVotes: endChallengeVotes ?? this.endChallengeVotes,
+      pendingJoinRequests: pendingJoinRequests ?? this.pendingJoinRequests,
+      initialParticipantIds:
+          initialParticipantIds ?? this.initialParticipantIds,
     );
   }
 
   double? getWeightLoss(String userId) {
-    final progress = participantProgress[userId];
+    final progress = participantProgress[userId]
+        ?.where((e) => e.approvalStatus == WeightEntryApprovalStatus.approved)
+        .toList();
     if (progress == null || progress.length < 2) return null;
-    return progress.first - progress.last;
+    return progress.first.weight - progress.last.weight;
   }
 
   double? getWeightLossPercentage(String userId) {
-    final progress = participantProgress[userId];
+    final progress = participantProgress[userId]
+        ?.where((e) => e.approvalStatus == WeightEntryApprovalStatus.approved)
+        .toList();
     if (progress == null || progress.length < 2) return null;
-    final startWeight = progress.first;
-    final currentWeight = progress.last;
+    final startWeight = progress.first.weight;
+    final currentWeight = progress.last.weight;
     return ((startWeight - currentWeight) / startWeight) * 100;
+  }
+
+  bool isReadOnly(String userId) {
+    if (DateTime.now().isAfter(entryWeightEndDate)) {
+      final progress = participantProgress[userId] ?? [];
+      if (progress.isEmpty) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Map<String, dynamic> toMap() {
@@ -107,8 +156,16 @@ class Challenge {
       'participantIds': participantIds,
       'isActive': isActive,
       'type': type.toString().split('.').last,
-      'participantProgress': participantProgress,
+      'participantProgress': participantProgress
+          .map((key, value) => MapEntry(key, value.map((e) => e.toMap()).toList())),
       'inviteCode': inviteCode,
+      'isPublic': isPublic,
+      'joinEndDate': joinEndDate.toIso8601String(),
+      'entryWeightEndDate': entryWeightEndDate.toIso8601String(),
+      'finalWeightEndDate': finalWeightEndDate.toIso8601String(),
+      'endChallengeVotes': endChallengeVotes,
+      'pendingJoinRequests': pendingJoinRequests,
+      'initialParticipantIds': initialParticipantIds,
     };
   }
 
@@ -127,10 +184,25 @@ class Challenge {
         (e) => e.toString().split('.').last == (map['type'] as String),
         orElse: () => ChallengeType.individual,
       ),
-      participantProgress: (map['participantProgress'] as Map<String, dynamic>?)?.map(
-        (key, value) => MapEntry(key, List<double>.from(value as List)),
+      participantProgress:
+          (map['participantProgress'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(
+            key,
+            (value as List)
+                .map((e) => WeightEntry.fromMap(e as Map<String, dynamic>))
+                .toList()),
       ),
       inviteCode: map['inviteCode'] as String?,
+      isPublic: map['isPublic'] as bool,
+      joinEndDate: DateTime.parse(map['joinEndDate'] as String),
+      entryWeightEndDate: DateTime.parse(map['entryWeightEndDate'] as String),
+      finalWeightEndDate: DateTime.parse(map['finalWeightEndDate'] as String),
+      endChallengeVotes: (map['endChallengeVotes'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(key, value as bool),
+      ),
+      pendingJoinRequests: List<String>.from(map['pendingJoinRequests'] ?? []),
+      initialParticipantIds:
+          List<String>.from(map['initialParticipantIds'] ?? []),
     );
   }
 }

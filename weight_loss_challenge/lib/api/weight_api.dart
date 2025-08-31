@@ -6,33 +6,45 @@ class WeightApi {
 
   Future<List<WeightEntry>> getWeightEntriesForUser(String userId) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    return _backend.weightEntries[userId] ?? [];
+    final allEntries = <WeightEntry>[];
+    for (final challenge in _backend.challenges) {
+      if (challenge.participantProgress.containsKey(userId)) {
+        allEntries.addAll(challenge.participantProgress[userId]!);
+      }
+    }
+    return allEntries;
   }
 
   Future<WeightEntry> addWeightEntry({
     required String userId,
     required double weight,
     String? challengeId,
-    String? note,
+    String? note, // Note is not in the model, but we keep it for now
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     final entry = WeightEntry(
-      id: _backend.weightEntries[userId]?.length.toString() ?? '0',
-      userId: userId,
       weight: weight,
-      date: DateTime.now(),
-      challengeId: challengeId,
-      note: note,
+      timestamp: DateTime.now(),
     );
-    if (_backend.weightEntries[userId] == null) {
-      _backend.weightEntries[userId] = [];
+
+    if (challengeId != null) {
+      final challenge =
+          _backend.challenges.firstWhere((c) => c.id == challengeId);
+      if (challenge.participantProgress[userId] == null) {
+        challenge.participantProgress[userId] = [];
+      }
+      challenge.participantProgress[userId]!.add(entry);
     }
-    _backend.weightEntries[userId]!.add(entry);
+
     return entry;
   }
 
-  Future<void> deleteWeightEntry(String userId, String entryId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    _backend.weightEntries[userId]?.removeWhere((entry) => entry.id == entryId);
+  Future<void> deleteWeightEntry(String userId, String weightEntryId) async {
+    for (final challenge in _backend.challenges) {
+      if (challenge.participantProgress.containsKey(userId)) {
+        challenge.participantProgress[userId]!
+            .removeWhere((e) => e.id == weightEntryId);
+      }
+    }
   }
 }

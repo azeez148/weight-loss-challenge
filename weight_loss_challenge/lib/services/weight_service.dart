@@ -9,8 +9,7 @@ class WeightService {
       StreamController<List<WeightEntry>>.broadcast();
 
   Stream<List<WeightEntry>> getWeightEntriesStream(String userId) {
-    return _weightEntriesController.stream.map(
-        (entries) => entries.where((entry) => entry.userId == userId).toList());
+    return _weightEntriesController.stream;
   }
 
   List<WeightEntry> getWeightEntriesForUser(String userId) {
@@ -40,9 +39,9 @@ class WeightService {
     return entry;
   }
 
-  Future<void> deleteWeightEntry(String userId, String entryId) async {
-    await _api.deleteWeightEntry(userId, entryId);
-    _weightEntries[userId]?.removeWhere((entry) => entry.id == entryId);
+  Future<void> deleteWeightEntry(String userId, String weightEntryId) async {
+    await _api.deleteWeightEntry(userId, weightEntryId);
+    _weightEntries[userId]?.removeWhere((e) => e.id == weightEntryId);
     _notifyListeners();
   }
 
@@ -58,14 +57,14 @@ class WeightService {
     }
 
     final sortedEntries = List<WeightEntry>.from(entries)
-      ..sort((a, b) => a.date.compareTo(b.date));
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     final initialWeight = sortedEntries.first.weight;
     final currentWeight = sortedEntries.last.weight;
     final totalLoss = initialWeight - currentWeight;
 
-    final weeks = sortedEntries.last.date
-            .difference(sortedEntries.first.date)
+    final weeks = sortedEntries.last.timestamp
+            .difference(sortedEntries.first.timestamp)
             .inDays /
         7;
     final averageLossPerWeek = weeks > 0 ? totalLoss / weeks : 0;
