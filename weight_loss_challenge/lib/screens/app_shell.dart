@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:weight_loss_challenge/screens/challenges/challenges_hub_screen.dart';
 import 'package:weight_loss_challenge/screens/home/dashboard_screen.dart';
-import 'package:weight_loss_challenge/screens/leaderboard/group_leaderboard_screen.dart';
+import 'package:weight_loss_challenge/screens/leaderboard/leaderboard_screen_new.dart';
 import 'package:weight_loss_challenge/screens/profile/profile_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -17,7 +17,7 @@ class _AppShellState extends State<AppShell> {
   static const List<Widget> _widgetOptions = <Widget>[
     DashboardScreen(),
     ChallengesHubScreen(),
-    GroupLeaderboardScreen(),
+    LeaderboardScreen(),
     ProfileScreen(),
   ];
 
@@ -41,11 +41,11 @@ class _AppShellState extends State<AppShell> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events),
-            label: 'Challenges',
+            label: 'My Challenges',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.leaderboard),
-            label: 'Leaderboard',
+            label: 'Leader Board',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
