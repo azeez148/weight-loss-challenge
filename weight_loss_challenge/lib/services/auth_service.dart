@@ -23,6 +23,11 @@ class AuthService {
 
   MockUser? get currentUser => _currentUser;
 
+  AuthService() {
+    // For testing purposes, automatically log in a user
+    signInWithEmailAndPassword('user2@example.com', 'anypassword');
+  }
+
   Future<MockUser?> createUserWithEmailAndPassword({
     required String email,
     required String password,
