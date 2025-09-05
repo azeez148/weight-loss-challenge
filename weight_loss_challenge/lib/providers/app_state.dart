@@ -166,7 +166,7 @@ class AppState extends ChangeNotifier {
   }
 
   // Weight tracking methods
-  Future<WeightEntry> addWeightEntry({
+  Future<void> addWeightEntry({
     required String challengeId,
     required double weight,
     String? note,
@@ -180,15 +180,7 @@ class AppState extends ChangeNotifier {
       weight: weight,
     );
 
-    // Also record it in the user's weight history
-    final entry = await _weightService.addWeightEntry(
-      userId: currentUser!.id,
-      weight: weight,
-      challengeId: challengeId,
-    );
-
     notifyListeners();
-    return entry;
   }
 
   Future<void> deleteWeightEntry(String weightEntryId) async {
