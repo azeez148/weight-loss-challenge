@@ -56,7 +56,6 @@ class ChallengeService {
       entryWeightEndDate: entryWeightEndDate,
       finalWeightEndDate: finalWeightEndDate,
     );
-    _challenges.add(challenge);
     _challengesController.add(_challenges);
     return challenge;
   }
