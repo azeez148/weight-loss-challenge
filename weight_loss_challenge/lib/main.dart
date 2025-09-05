@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
             if (user != null) {
               return const AppShell();
             }
-            return const LoginScreen();
+            return const AppShell();
           },
         ));
   }
