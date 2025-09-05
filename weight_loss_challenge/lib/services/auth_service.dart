@@ -25,7 +25,8 @@ class AuthService {
 
   AuthService() {
     // For testing purposes, automatically log in a user
-    signInWithEmailAndPassword('user2@example.com', 'anypassword');
+    _currentUser = MockUser(id: 'user2', email: 'user2@example.com');
+    _authStateController.add(_currentUser);
   }
 
   Future<MockUser?> createUserWithEmailAndPassword({
