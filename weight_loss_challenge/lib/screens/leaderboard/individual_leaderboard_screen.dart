@@ -59,7 +59,7 @@ class _IndividualLeaderboardScreenState
             return LeaderboardEntry(
               user: UserModel(
                 id: userId,
-                name: userProfile?.displayName ?? 'Unknown',
+                name: userProfile?.name ?? 'Unknown',
                 email: userProfile?.email ?? '',
                 currentWeight: userProfile?.currentWeight ?? 0,
                 startWeight: userProfile?.startWeight ?? 0,
@@ -78,7 +78,7 @@ class _IndividualLeaderboardScreenState
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: DropdownButtonFormField<String>(
-                  value: _selectedChallengeId,
+                  initialValue: _selectedChallengeId,
                   decoration: const InputDecoration(
                     labelText: 'Select Challenge',
                     border: OutlineInputBorder(),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:weight_loss_challenge/models/challenge.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/auth/login_screen.dart';
 import 'package:weight_loss_challenge/screens/challenges/challenge_detail_screen.dart';

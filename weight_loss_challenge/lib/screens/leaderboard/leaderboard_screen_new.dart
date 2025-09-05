@@ -102,7 +102,7 @@ class LeaderboardView extends StatelessWidget {
       return LeaderboardEntry(
         user: UserModel(
           id: userId,
-          name: userProfile?.displayName ?? 'Unknown',
+          name: userProfile?.name ?? 'Unknown',
           email: userProfile?.email ?? '',
           currentWeight: userProfile?.currentWeight ?? 0,
           startWeight: userProfile?.startWeight ?? 0,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:weight_loss_challenge/models/challenge.dart';
+import 'package:weight_loss_challenge/models/weight_entry.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 
 class ChallengeDetailScreen extends StatefulWidget {

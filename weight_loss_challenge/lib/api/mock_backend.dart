@@ -2,7 +2,6 @@ import 'package:uuid/uuid.dart';
 import 'package:weight_loss_challenge/models/challenge.dart';
 import 'package:weight_loss_challenge/models/user_model.dart';
 import 'package:weight_loss_challenge/models/weight_entry.dart';
-import 'package:weight_loss_challenge/services/auth_service.dart';
 
 class MockBackend {
   static final MockBackend _instance = MockBackend._internal();
