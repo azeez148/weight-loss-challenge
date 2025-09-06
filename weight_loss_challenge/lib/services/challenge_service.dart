@@ -70,17 +70,18 @@ class ChallengeService {
     await refreshChallenges(userId);
   }
 
-  Future<void> addWeightEntry({
+  Future<WeightEntry> addWeightEntry({
     required String challengeId,
     required String userId,
     required double weight,
   }) async {
-    await _api.addWeightEntry(
+    final entry = await _api.addWeightEntry(
       challengeId: challengeId,
       userId: userId,
       weight: weight,
     );
     await refreshChallenges(userId);
+    return entry;
   }
 
   Future<void> requestToJoinPublicChallenge(String challengeId, String userId) async {

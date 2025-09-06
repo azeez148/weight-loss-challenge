@@ -101,7 +101,7 @@ class ChallengeApi {
     _backend.challenges[index] = updatedChallenge;
   }
 
-  Future<void> addWeightEntry({
+  Future<WeightEntry> addWeightEntry({
     required String challengeId,
     required String userId,
     required double weight,
@@ -121,12 +121,14 @@ class ChallengeApi {
     if (!progress.containsKey(userId)) {
       progress[userId] = [];
     }
-    progress[userId]!.add(WeightEntry(weight: weight, timestamp: DateTime.now()));
+    final newEntry = WeightEntry(weight: weight, timestamp: DateTime.now());
+    progress[userId]!.add(newEntry);
 
     final updatedChallenge = challenge.copyWith(
       participantProgress: progress,
     );
     _backend.challenges[index] = updatedChallenge;
+    return newEntry;
   }
 
   Future<void> requestToJoinPublicChallenge(String challengeId, String userId) async {
