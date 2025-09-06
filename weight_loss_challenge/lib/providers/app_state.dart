@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../models/challenge.dart';
 import '../models/user_model.dart';
 import '../models/weight_entry.dart';
@@ -61,6 +62,7 @@ class AppState extends ChangeNotifier {
         email: user.email,
         name: user.displayName,
       );
+      await _ensureInviteCode(user.id);
       notifyListeners();
     }
     return user;
@@ -78,6 +80,7 @@ class AppState extends ChangeNotifier {
           name: user.displayName,
         );
       }
+      await _ensureInviteCode(user.id);
       await _weightService.fetchWeightEntriesForUser(user.id);
       await refreshChallenges();
     }
@@ -228,6 +231,17 @@ class AppState extends ChangeNotifier {
     if (currentUser == null) return;
     await _challengeService.refreshChallenges(currentUser!.id);
     notifyListeners();
+  }
+
+  Future<void> _ensureInviteCode(String userId) async {
+    final profile = _profileService.getProfile(userId);
+    if (profile != null && profile.inviteCode == null) {
+      final newInviteCode = const Uuid().v4();
+      await _profileService.updateProfile(
+        userId: userId,
+        inviteCode: newInviteCode,
+      );
+    }
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:weight_loss_challenge/models/user_model.dart';
 import 'package:weight_loss_challenge/providers/app_state.dart';
 import 'package:weight_loss_challenge/screens/leaderboard/individual_leaderboard_screen.dart';
+import 'package:weight_loss_challenge/screens/profile/invite_screen.dart';
 import 'package:weight_loss_challenge/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
@@ -119,6 +120,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildLeaderboardCard(context),
                   const SizedBox(height: 24),
+                  _buildInviteCard(context),
+                  const SizedBox(height: 24),
                   _buildProfileForm(userProfile),
                   const SizedBox(height: 24),
                   _buildWeightHistoryCard(appState),
@@ -127,6 +130,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInviteCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Invite Friends',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InviteScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Share Invite Code'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

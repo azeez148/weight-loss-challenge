@@ -8,6 +8,7 @@ class UserModel {
   final List<String> challengeIds;
   final double? height;
   final DateTime? lastRecordedDateTime;
+  final String? inviteCode;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.challengeIds = const [],
     this.height,
     this.lastRecordedDateTime,
+    this.inviteCode,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +34,7 @@ class UserModel {
       'challengeIds': challengeIds,
       'height': height,
       'lastRecordedDateTime': lastRecordedDateTime?.toIso8601String(),
+      'inviteCode': inviteCode,
     };
   }
 
@@ -48,6 +51,7 @@ class UserModel {
       lastRecordedDateTime: map['lastRecordedDateTime'] != null
           ? DateTime.parse(map['lastRecordedDateTime'])
           : null,
+      inviteCode: map['inviteCode'],
     );
   }
 
@@ -61,6 +65,7 @@ class UserModel {
     List<String>? challengeIds,
     double? height,
     DateTime? lastRecordedDateTime,
+    String? inviteCode,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -72,6 +77,7 @@ class UserModel {
       challengeIds: challengeIds ?? this.challengeIds,
       height: height ?? this.height,
       lastRecordedDateTime: lastRecordedDateTime ?? this.lastRecordedDateTime,
+      inviteCode: inviteCode ?? this.inviteCode,
     );
   }
 }
