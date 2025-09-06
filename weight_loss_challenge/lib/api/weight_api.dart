@@ -28,12 +28,8 @@ class WeightApi {
     );
 
     if (challengeId != null) {
-      final challenge =
-          _backend.challenges.firstWhere((c) => c.id == challengeId);
-      if (challenge.participantProgress[userId] == null) {
-        challenge.participantProgress[userId] = [];
-      }
-      challenge.participantProgress[userId]!.add(entry);
+      // The logic to add a weight entry to a challenge has been moved to
+      // ChallengeApi.addWeightEntry to avoid duplicate entries.
     }
 
     return entry;

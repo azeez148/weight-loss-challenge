@@ -174,17 +174,10 @@ class AppState extends ChangeNotifier {
     if (currentUser == null) throw Exception('Not authenticated');
 
     // Add weight entry to the challenge
-    await _challengeService.addWeightEntry(
+    final entry = await _challengeService.addWeightEntry(
       challengeId: challengeId,
       userId: currentUser!.id,
       weight: weight,
-    );
-
-    // Also record it in the user's weight history
-    final entry = await _weightService.addWeightEntry(
-      userId: currentUser!.id,
-      weight: weight,
-      challengeId: challengeId,
     );
 
     notifyListeners();
