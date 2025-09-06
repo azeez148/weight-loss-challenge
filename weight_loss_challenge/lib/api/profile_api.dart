@@ -11,24 +11,27 @@ class ProfileApi {
 
   Future<UserModel> updateProfile({
     required String userId,
-    required String email,
+    String? email,
     String? name,
     double? targetWeight,
     double? currentWeight,
     double? height,
     DateTime? lastRecordedDateTime,
+    String? inviteCode,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     final currentUser = _backend.users[userId];
     final updatedUser = UserModel(
       id: userId,
-      email: email,
+      email: email ?? currentUser?.email ?? '',
       name: name ?? currentUser?.name ?? '',
       targetWeight: targetWeight ?? currentUser?.targetWeight ?? 0.0,
       currentWeight: currentWeight ?? currentUser?.currentWeight ?? 0.0,
       height: height ?? currentUser?.height,
-      lastRecordedDateTime: lastRecordedDateTime ?? currentUser?.lastRecordedDateTime,
+      lastRecordedDateTime:
+          lastRecordedDateTime ?? currentUser?.lastRecordedDateTime,
       startWeight: currentUser?.startWeight ?? 0.0,
+      inviteCode: inviteCode ?? currentUser?.inviteCode,
     );
     _backend.users[userId] = updatedUser;
     return updatedUser;

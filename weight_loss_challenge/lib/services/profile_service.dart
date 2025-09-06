@@ -18,12 +18,13 @@ class ProfileService {
 
   Future<UserModel> updateProfile({
     required String userId,
-    required String email,
+    String? email,
     String? name,
     double? targetWeight,
     double? currentWeight,
     double? height,
     DateTime? lastRecordedDateTime,
+    String? inviteCode,
   }) async {
     final updatedProfile = await _api.updateProfile(
       userId: userId,
@@ -33,6 +34,7 @@ class ProfileService {
       currentWeight: currentWeight,
       height: height,
       lastRecordedDateTime: lastRecordedDateTime,
+      inviteCode: inviteCode,
     );
     _profiles[userId] = updatedProfile;
     _profileController.add(updatedProfile);
